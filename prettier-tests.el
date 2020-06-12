@@ -2,7 +2,7 @@
 
 ;; Copyright (c) 2018-present Julian Scheid
 
-;; Package-Requires: ((web-mode "20200501"))
+;; Package-Requires: ((web-mode "20200501") (elm-mode "20200406") (pug-mode "20180513") (svelte-mode "20200327") (toml-mode "20161107") (solidity-mode "20200418"))
 
 ;;; Commentary:
 
@@ -32,12 +32,12 @@
             (with-temp-buffer
               (insert-file-contents
                (replace-regexp-in-string
-                "\\.original\\.js$"
-                ".prettier.js"
+                "\\.original\\."
+                ".prettier."
                 original-file))
               (buffer-string))))
        (should (equal actual expected))))
-   (directory-files directory t "\\.original\\.js$")))
+   (directory-files directory t "\\.original\\.")))
 
 (mapc
  (lambda (test-directory)
@@ -62,6 +62,16 @@
     (setq buffer-file-name "test.ts")
     (web-mode)
     (should (equal (prettier--parsers) '(typescript)))))
+
+(ert-deftest customize-prettier ()
+  (customize-option 'prettier-pre-warm)
+  (customize-option 'prettier-inline-errors-flag)
+  (customize-option 'prettier-mode-sync-config-flag)
+  (customize-option 'prettier-editorconfig-flag)
+  (customize-option 'prettier-infer-parser-flag)
+  (customize-option 'prettier-enabled-parsers)
+  (customize-option 'prettier-mode-ignore-buffer-function)
+  (customize-option 'prettier-lighter))
 
 (provide 'prettier-tests)
 

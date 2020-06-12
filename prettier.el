@@ -3,7 +3,7 @@
 ;; Copyright (c) 2018-present Julian Scheid
 
 ;; Author: Julian Scheid <julians37@gmail.com>
-;; Version: 0.7.0
+;; Version: 0.8.1
 ;; Created: 7 Nov 2018
 ;; Keywords: convenience, languages, files
 ;; Homepage: https://github.com/jscheid/prettier.el
@@ -45,6 +45,7 @@
 (require 'tramp)
 (require 'subr-x)
 (require 'compile)
+(require 'ansi-color)
 
 (eval-when-compile
   (require 'cl-lib)
@@ -74,15 +75,15 @@ With `full', you wait when command `prettier-mode' is first
 activated.  `some' is a compromise, with it you wait some on
 first activation and some on first save."
   :type '(choice
-          (none :tag "No pre-warming, everything on-demand")
-          (some :tag "Start server early, no other pre-warming")
-          (full :tag "Pre-warm as much as possible"))
+          (const :tag "No pre-warming, everything on-demand" none)
+          (const :tag "Start server early, no other pre-warming" some)
+          (const :tag "Pre-warm as much as possible" full))
   :package-version '(prettier . "0.1.0")
   :group 'prettier
   :link '(info-link "(prettier)prettier-pre-warm")
-  :link `(url ,(eval-when-compile
-                 (prettier--readme-link
-                  "prettier-pre-warm"))))
+  :link `(url-link ,(eval-when-compile
+                      (prettier--readme-link
+                       "prettier-pre-warm"))))
 
 (defcustom prettier-inline-errors-flag nil
   "Non-nil means to show Prettier errors inline using overlays.
@@ -96,9 +97,9 @@ When nil, send errors to the default error buffer."
   :package-version '(prettier . "0.1.0")
   :group 'prettier
   :link '(info-link "(prettier)prettier-inline-errors-flag")
-  :link `(url ,(eval-when-compile
-                 (prettier--readme-link
-                  "prettier-inline-errors-flag"))))
+  :link `(url-link ,(eval-when-compile
+                      (prettier--readme-link
+                       "prettier-inline-errors-flag"))))
 
 
 (defcustom prettier-mode-sync-config-flag t
@@ -107,9 +108,9 @@ When nil, send errors to the default error buffer."
   :package-version '(prettier . "0.1.0")
   :group 'prettier
   :link '(info-link "(prettier)prettier-mode-sync-config-flag")
-  :link `(url ,(eval-when-compile
-                 (prettier--readme-link
-                  "prettier-mode-sync-config-flag"))))
+  :link `(url-link ,(eval-when-compile
+                      (prettier--readme-link
+                       "prettier-mode-sync-config-flag"))))
 ;;;###autoload
 (put 'prettier-mode-sync-config-flag 'safe-local-variable 'booleanp)
 
@@ -121,9 +122,9 @@ Requires Prettier 1.9+."
   :package-version '(prettier . "0.1.0")
   :group 'prettier
   :link '(info-link "(prettier)prettier-editorconfig-flag")
-  :link `(url ,(eval-when-compile
-                 (prettier--readme-link
-                  "prettier-editorconfig-flag"))))
+  :link `(url-link ,(eval-when-compile
+                      (prettier--readme-link
+                       "prettier-editorconfig-flag"))))
 ;;;###autoload
 (put 'prettier-editorconfig-flag 'safe-local-variable 'booleanp)
 
@@ -133,9 +134,9 @@ Requires Prettier 1.9+."
   :package-version '(prettier . "0.5.0")
   :group 'prettier
   :link '(info-link "(prettier)prettier-infer-parser-flag")
-  :link `(url ,(eval-when-compile
-                 (prettier--readme-link
-                  "prettier-infer-parser-flag"))))
+  :link `(url-link ,(eval-when-compile
+                      (prettier--readme-link
+                       "prettier-infer-parser-flag"))))
 ;;;###autoload
 (put 'prettier-infer-parser-flag 'safe-local-variable 'booleanp)
 
@@ -143,9 +144,11 @@ Requires Prettier 1.9+."
                                       babel
                                       babel-flow
                                       css
+                                      elm
                                       flow
                                       graphql
                                       html
+                                      java
                                       json
                                       less
                                       lua
@@ -153,12 +156,17 @@ Requires Prettier 1.9+."
                                       mdx
                                       php
                                       postgresql
+                                      pug
                                       python
                                       ruby
                                       scss
+                                      solidity
+                                      svelte
                                       swift
+                                      toml
                                       typescript
                                       vue
+                                      xml
                                       yaml)
   "Prettier parsers to enable.
 
@@ -172,8 +180,10 @@ on your Prettier version and which plug-ins you have installed."
     (const :tag "Babel (formerly Babylon)" babel)
     (const :tag "Babel-Flow (1.15+)" babel-flow)
     (const :tag "CSS (1.4+)" css)
+    (const :tag "Elm (2.0+?, requires plugin)" elm)
     (const :tag "Flow" flow)
     (const :tag "GraphQL (1.5+)" graphql)
+    (const :tag "Java (2.0+?, requires plugin)" java)
     (const :tag "JSON (1.5+)" json)
     (const :tag "JSON 5 (1.5+)" json5)
     (const :tag "JSON.stringify (1.5+)" json-stringify)
@@ -184,19 +194,24 @@ on your Prettier version and which plug-ins you have installed."
     (const :tag "MDX (1.15+)" mdx)
     (const :tag "PHP (1.10+, requires plugin)" php)
     (const :tag "PostgreSQL (1.10+, requires plugin" postgresql)
+    (const :tag "Pug (2.0+, requires plugin)" pug)
     (const :tag "Python (1.10+, requires plugin)" python)
     (const :tag "Ruby (1.10+, requires plugin)" ruby)
     (const :tag "SCSS (1.4+)" scss)
+    (const :tag "Solidity (2.0+?, requires plugin)" solidity)
+    (const :tag "Svelte (1.16+, requires plugin)" svelte)
     (const :tag "Swift (1.10+, requires plugin)" swift)
+    (const :tag "TOML (1.16+, requires plugin)" toml)
     (const :tag "TypeScript (1.4+)" typescript)
     (const :tag "Vue (1.10+)" vue)
+    (const :tag "XML (1.10+, requires plugin)" xml)
     (const :tag "YAML (1.14+)" yaml))
   :package-version '(prettier . "0.1.0")
   :group 'prettier
   :link '(info-link "(prettier)prettier-enabled-parsers")
-  :link `(url ,(eval-when-compile
-                 (prettier--readme-link
-                  "prettier-enabled-parsers"))))
+  :link `(url-link ,(eval-when-compile
+                      (prettier--readme-link
+                       "prettier-enabled-parsers"))))
 
 (defcustom prettier-mode-ignore-buffer-function
   #'prettier--in-node-modules-p
@@ -208,9 +223,9 @@ should not be enabled for the current buffer."
   :package-version '(prettier . "0.2.0")
   :group 'prettier
   :link '(info-link "(prettier)prettier-ignore-buffer-function")
-  :link `(url ,(eval-when-compile
-                 (prettier--readme-link
-                  "prettier-ignore-buffer-function"))))
+  :link `(url-link ,(eval-when-compile
+                      (prettier--readme-link
+                       "prettier-ignore-buffer-function"))))
 
 (defcustom prettier-lighter
   '(:eval
@@ -234,9 +249,9 @@ Set this variable to nil to disable the mode line completely."
   :group 'prettier
   :risky t
   :link '(info-link "(prettier)prettier-lighter")
-  :link `(url ,(eval-when-compile
-                 (prettier--readme-link
-                  "prettier-lighter"))))
+  :link `(url-link ,(eval-when-compile
+                      (prettier--readme-link
+                       "prettier-lighter"))))
 
 (defface prettier-inline-error
   '((t :inherit compilation-error))
@@ -246,14 +261,6 @@ Set this variable to nil to disable the mode line completely."
 
 
 ;;;; Non-customizable
-
-(defconst prettier-el-version
-  (eval-when-compile
-    (package-version-join
-     (package-desc-version
-      (save-excursion
-        (package-buffer-info)))))
-  "Version of `prettier' package.")
 
 (defconst prettier-benign-errors
   '("Error: Couldn't resolve parser")
@@ -272,8 +279,9 @@ Other errors are shown inline or in the error buffer.")
       ruby-indent-tabs-mode)        ; ruby-mode
      :useTabs)
 
-    ((c-basic-offset                ; cc-mode
+    ((c-basic-offset                ; cc-mode, java-mode
       css-indent-offset             ; css-mode, scss-mode etc
+      elm-indent-offset             ; elm-mode
       enh-ruby-indent-level         ; enh-ruby-mode
       graphql-indent-level          ; graphql-mode
       handlebars-basic-offset       ; handlebars-mode
@@ -281,9 +289,13 @@ Other errors are shown inline or in the error buffer.")
       js2-basic-offset              ; js2-mode
       js3-indent-level              ; js3-mode
       lua-indent-level              ; lua-mode
+      nxml-attribute-indent         ; nxml-mode
+      nxml-child-indent             ; nxml-mode
+      nxml-outline-child-indent     ; nxml-mode
+      pug-tab-width                 ; pug-mode
       python-indent                 ; python-mode
       ruby-indent-level             ; ruby-mode
-      sgml-basic-offset             ; js2-mode, html-mode
+      sgml-basic-offset             ; js2-mode, html-mode, svelte-mode
       smie-indent-basic             ; smie.el (generic)
       standard-indent               ; indent.el (generic)
       swift-mode:basic-offset       ; swift-mode.el
@@ -368,8 +380,11 @@ won't be touched.")
 
 (defconst prettier-major-mode-parsers
   `((angular-mode . (angular))
+    (elm-mode . (elm))
+    (svelte-mode . (svelte html))
     (html-mode . (html))
     (mhtml-mode . (html))
+    (java-mode . (java))
     (js-mode . ,#'prettier--guess-js-ish)
     (js2-mode . ,#'prettier--guess-js-ish)
     (js3-mode . ,#'prettier--guess-js-ish)
@@ -389,6 +404,10 @@ won't be touched.")
                      '(json json5 json-stringify))))
     (graphql-mode . (graphql))
     (markdown-mode . (markdown))
+    (nxml-mode . (xml))
+    (pug-mode . (pug))
+    (solidity-mode . (solidity))
+    (toml-mode . (toml))
     (vue-mode . (vue))
     (yaml-mode . (yaml))
     (lua-mode . (lua))
@@ -546,6 +565,20 @@ IDENTIFICATION and CONNECTED have the same meaning as
               identification
               connected)))
 
+(defun prettier-el--version ()
+  "Return the version of the `prettier' package."
+  (package-version-join
+   (package-desc-version
+    (with-temp-buffer
+      (let ((src (or
+                  ;; load-file-name seemed like it would be useful here,
+                  ;; but didn't work in practice.
+                  (locate-library "prettier.el")
+                  ;; This one shouldn't be needed:
+                  (concat prettier-el-home "/prettier.el"))))
+        (insert-file-contents src))
+      (package-buffer-info)))))
+
 (defun prettier-info ()
   "Show a temporary buffer with diagnostic info.
 
@@ -555,7 +588,7 @@ should be used when filing bug reports."
   (let ((info
          (list
           :emacs-version (emacs-version)
-          :prettier-el-version prettier-el-version
+          :prettier-el-version (prettier-el--version)
           :buffer-file-name buffer-file-name
           :remote-id (prettier--buffer-remote-p)
           :major-mode major-mode
@@ -837,7 +870,8 @@ separate window."
       (setq buffer-read-only nil)
       (save-excursion
         (erase-buffer)
-        (insert (apply #'format string objects)))
+        (insert (ansi-color-apply
+                 (apply #'format string objects))))
       (compilation-mode)
       (setq-local compilation-error-screen-columns nil)
       (display-buffer errbuf))))
@@ -1015,16 +1049,16 @@ close to post-formatting as possible."
         (progn
           (iter-do (command iter)
             (if (eq (car command) ?O)
-                 (let* ((json-object-type 'plist)
-                        (json-false nil))
-                   (setq
-                    config
-                    (json-read-from-string
-                     (base64-decode-string
-                      (with-current-buffer process-buf
-                        (buffer-substring-no-properties
-                         (nth 1 command)
-                         (nth 2 command)))))))))
+                (let* ((json-object-type 'plist)
+                       (json-false nil))
+                  (setq
+                   config
+                   (json-read-from-string
+                    (base64-decode-string
+                     (with-current-buffer process-buf
+                       (buffer-substring-no-properties
+                        (nth 1 command)
+                        (nth 2 command)))))))))
           (when prettier-show-benchmark-flag
             (message
              "Prettier load-config took %.1fms"
@@ -1115,10 +1149,10 @@ formatting."
                         (command-str
                          (lambda ()
                            (base64-decode-string
-                               (with-current-buffer process-buf
-                                 (buffer-substring-no-properties
-                                  (nth 0 (cdr command))
-                                  (nth 1 (cdr command))))))))
+                            (with-current-buffer process-buf
+                              (buffer-substring-no-properties
+                               (nth 0 (cdr command))
+                               (nth 1 (cdr command))))))))
                     (cond
                      ((eq kind ?M)
                       (forward-char (cdr command)))
